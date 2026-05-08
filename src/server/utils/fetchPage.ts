@@ -16,12 +16,14 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
 
+    // domcontentloaded is faster and avoids hanging on sites with persistent connections
     await page.goto(url, {
-      waitUntil: "networkidle2",
+      waitUntil: "domcontentloaded",
       timeout: 20000,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Wait for lazy content to render
+    await new Promise((resolve) => setTimeout(resolve, 2500));
 
     const finalUrl = page.url();
     const html = await page.content();

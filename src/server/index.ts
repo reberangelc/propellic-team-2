@@ -1,4 +1,5 @@
-import "dotenv/config";
+import { config } from "dotenv";
+config({ override: true });
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { validateUrl } from "./utils/validateUrl";
@@ -45,7 +46,9 @@ app.post("/api/audit", async (req: Request, res: Response): Promise<void> => {
   if (cached) { res.json(cached); return; }
 
   try {
+    console.log(`[audit] fetching page: ${url}`);
     const { html, screenshotBase64, finalUrl } = await fetchPage(url);
+    console.log(`[audit] page fetched (${html.length} bytes), running extractors...`);
 
     const [ctas, trustSignals, formAnalysis, headlines] = await Promise.all([
       Promise.resolve(extractCTAs(html)),
@@ -54,8 +57,10 @@ app.post("/api/audit", async (req: Request, res: Response): Promise<void> => {
       Promise.resolve(extractHeadlines(html)),
     ]);
 
+    console.log(`[audit] extractors done (${ctas.length} CTAs, ${trustSignals.length} trust signals), calling AI...`);
     const signals = { ctas, trustSignals, formAnalysis, headlines };
     const aiOutput = await analyzeWithAI(signals, goalType as GoalType, finalUrl);
+    console.log(`[audit] AI analysis complete`);
 
     const result: AuditResult = {
       url, finalUrl, goalType: goalType as GoalType,
