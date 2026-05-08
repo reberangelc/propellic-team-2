@@ -6,8 +6,8 @@ import type {
   AuditErrorResponse,
   LoadingStage,
 } from "../types/audit.js";
-import mockData from "../mock/audit-response.json";
 
+// Set to true to run against mock/audit-response.json without a backend
 const USE_MOCK = false;
 
 const LOADING_STAGES: LoadingStage[] = [
@@ -45,6 +45,7 @@ export function useAudit(): UseAuditReturn {
       void (async () => {
         try {
           if (USE_MOCK) {
+            const { default: mockData } = await import("../../mock/audit-response.json");
             for (const stage of LOADING_STAGES) {
               setLoadingStage(stage);
               await delay(800);
